@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>360° Street View – Rumtek Monastery</title>
+  <style>
+    /* Styles as your sample */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f0f4f8, #dfe9f3); color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px;}
+    h2 { font-size: clamp(1.5rem, 2.5vw, 2.5rem); margin-bottom: 20px; color: #222; letter-spacing: 1px; position: relative; display: inline-block;}
+    h2::after { content: ''; position: absolute; left: 0; bottom: -6px; width: 100%; height: 4px; background: linear-gradient(90deg, #ff9966, #ff5e62); border-radius: 2px; transform: scaleX(0); transform-origin: left; transition: transform 0.4s;}
+    h2:hover::after { transform: scaleX(1);}
+    .iframe-container { position: relative; width: 100%; max-width: 1200px; overflow: hidden; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); background: #fff;}
+    .iframe-container::before { content: ""; display: block; padding-top: 56.25%;}
+    .iframe-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;}
+    footer { margin-top: 30px; font-size: 0.9rem; color: #555; opacity: 0.8;}
+    @media (max-width: 768px) { h2 { font-size: 1.6rem; } }
+    @media (max-width: 480px) { body { padding: 15px; } h2 { font-size: 1.3rem; } }
+  </style>
+</head>
+<body>
+  <h2>360° Street View – Rumtek Monastery</h2>
+  <div class="iframe-container">
+    <iframe 
+      src="https://www.google.com/maps/embed?pb=!4v1568864721761!6m8!1m7!1sCAoSLEFGMVFpcFBhMFJ0RWFyMzdGb1dGdVdJSTNXMVFDQ2M4Y2stSnBvc05UQzh5!2m2!1d27.2887!2d88.5615!3f270!4f0!5f0.7820865974627469" 
+      allowfullscreen>
+    </iframe>
+  </div>
+  <footer>Built with ❤️ for SIH Project</footer>
+</body>
+</html>

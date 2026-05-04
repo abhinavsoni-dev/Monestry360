@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Monastery360 – Digital Heritage</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f9f5ef;         
+  --text: #2c2c2c;
+  --muted: #7d6f58;      
+  --accent: #b42b2b;
+  --card-bg: #fff8f0; 
+  --card-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+  body.dark {
+    --bg:#121212;
+    --text:#f0f0f0;
+    --muted:#bbb;
+    --card-bg:#1e1e1e;
+    --card-shadow:0 6px 18px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;transition:background 0.3s,color 0.3s}
+  body{
+    margin:0;
+    font-family:Inter,system-ui,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.45;
+  }
+
+  /* header */
+  header{
+    position:fixed;top:0;left:0;right:0;
+    height:72px;display:flex;align-items:center;justify-content:space-between;
+    padding:10px 24px;background:rgba(255,255,255,0.9);
+    backdrop-filter:blur(6px);border-bottom:1px solid rgba(0,0,0,0.05);
+    z-index:1000;
+  }
+  body.dark header{background:rgba(18,18,18,0.9);border-color:rgba(255,255,255,0.1);}
+  
+  .header-left{display:flex;align-items:center;gap:20px;}
+  .header-right{display:flex;align-items:center;gap:12px;}
+  
+  .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+  .brand img{height:48px;width:auto}
+  
+  .header-nav{display:flex;align-items:center;gap:18px;}
+  .header-nav a{text-decoration:none;color:var(--muted);font-weight:600;font-size:0.9rem;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all 0.3s ease;}
+  .header-nav a:hover{color:var(--accent);background:rgba(255,255,255,0.2);transform:scale(1.1);}
+  .header-nav a::before{content:'';display:block;width:20px;height:20px;background-size:contain;background-repeat:no-repeat;background-position:center;}
+  .header-nav a[href="#language"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/%3E%3C/svg%3E");}
+  .header-nav a[href="#account"]::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");}
+
+  .toggle-btn{
+    background:none;border:0;cursor:pointer;font-size:1.2rem;
+    color:var(--text);
+  }
+
+  main{padding-top:84px;height:calc(100vh - 84px);display:flex;gap:0;position:relative;}
+
+  /* layout */
+  .main-content{flex:1;position:relative;display:flex;align-items:center;justify-content:center;}
+  .sidebar{width:280px;flex-shrink:0;z-index:10;order:1;}
+
+  /* carousel - full page background */
+  .hero{position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;}
+  .carousel-track{display:flex;height:100%;transition:transform 0.7s ease}
+  .slide{min-width:100%;height:100%}
+  .slide img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* central content overlay */
+  .content-overlay{
+    position:relative;z-index:10;text-align:center;color:#fff;
+    background:rgba(0,0,0,0.3);padding:60px 40px;border-radius:20px;
+    backdrop-filter:blur(10px);max-width:600px;margin:0 auto;width:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .content-overlay h1{font-size:clamp(36px,6vw,72px);margin:0 0 20px;font-weight:800;text-shadow:2px 2px 4px rgba(0,0,0,0.5);text-align:center;}
+  .content-overlay .description{font-size:clamp(16px,2.5vw,24px);margin:0 0 40px;font-weight:400;line-height:1.4;text-shadow:1px 1px 2px rgba(0,0,0,0.5);text-align:center;max-width:500px;}
+  .content-overlay .input-field{
+    width:100%;max-width:400px;padding:16px 24px;border:none;border-radius:50px;
+    font-size:16px;background:rgba(255,255,255,0.9);color:#333;text-align:center;
+    box-shadow:0 4px 15px rgba(0,0,0,0.2);transition:all 0.3s ease;margin:0 auto;
+  }
+  .content-overlay .input-field:focus{outline:none;background:rgba(255,255,255,1);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.3);}
+  .content-overlay .input-field::placeholder{color:#666;font-weight:500;}
+
+  /* controls */
+  .controls{position:absolute;bottom:20px;right:20px;display:flex;gap:8px}
+  .btn{background:rgba(255,255,255,0.7);border:none;padding:10px 14px;border-radius:10px;cursor:pointer}
+  .btn:hover{background:rgba(255,255,255,0.9)}
+
+  /* indicators */
+  .indicators{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:8px}
+  .dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.6);cursor:pointer}
+  .dot.active{background:var(--accent)}
+
+  /* features sidebar */
+  .features{display:flex;flex-direction:column;gap:20px;padding:30px 20px;background:rgba(255,255,255,0.95);border-radius:0 20px 20px 0;box-shadow:var(--card-shadow);margin:20px 0;height:fit-content;backdrop-filter:blur(10px);}
+  body.dark .features{background:rgba(30,30,30,0.95);}
+  .feature{background:rgba(255,255,255,0.9);border-radius:15px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,0.1);transition:.3s;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;text-decoration:none;color:inherit;min-height:80px;justify-content:center;}
+  body.dark .feature{background:rgba(18,18,18,0.9);}
+  .feature:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,0.2);}
+  .feature img{width:32px;height:32px;flex-shrink:0;opacity:0.7;}
+  .feature-content{flex:1;text-align:center;}
+  .feature h3{margin:0 0 6px;color:var(--accent);font-size:0.9rem;font-weight:600;}
+  .feature p{margin:0;color:var(--muted);font-size:0.8rem;line-height:1.3;}
+
+  /* footer */
+  footer{padding:28px;text-align:center;color:var(--muted);margin-top:28px;background:var(--card-bg);border-radius:18px 18px 0 0;box-shadow:var(--card-shadow);}
+  .footer-content{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;}
+  .footer-content a{color:var(--muted);text-decoration:none;font-weight:600;}
+  .footer-content a:hover{color:var(--accent);}
+
+  /* responsive design */
+  @media (max-width: 768px) {
+    main{flex-direction:row;padding:84px 0 0;}
+    .sidebar{width:180px;flex-shrink:0;order:1;}
+    .features{flex-direction:column;gap:12px;padding:15px 12px;border-radius:0 12px 12px 0;}
+    .feature{padding:12px;gap:6px;min-height:60px;}
+    .feature img{width:24px;height:24px;}
+    .feature h3{font-size:0.75rem;}
+    .feature p{font-size:0.65rem;}
+    .content-overlay{padding:40px 30px;max-width:500px;}
+    .content-overlay h1{font-size:clamp(28px,5vw,48px);}
+    .content-overlay .description{font-size:clamp(14px,2vw,18px);}
+    .header-left, .header-right{gap:12px;}
+    .header-nav{gap:12px;}
+    .header-nav a{width:36px;height:36px;}
+    .header-nav a::before{width:18px;height:18px;}
+    .footer-content{gap:20px;}
+  }
+
+  @media (max-width: 480px) {
+    header{padding:8px 16px;}
+    .brand img{height:36px;}
+    .header-nav a{width:32px;height:32px;}
+    .header-nav a::before{width:16px;height:16px;}
+    .sidebar{width:140px;}
+    .features{padding:12px 8px;gap:8px;border-radius:0 8px 8px 0;}
+    .feature{padding:8px;gap:4px;min-height:50px;}
+    .feature img{width:20px;height:20px;}
+    .feature h3{font-size:0.7rem;}
+    .feature p{font-size:0.6rem;}
+    .content-overlay{padding:30px 20px;max-width:350px;}
+    .content-overlay h1{font-size:clamp(24px,4vw,36px);}
+    .content-overlay .description{font-size:clamp(12px,1.8vw,16px);}
+    .content-overlay .input-field{padding:12px 20px;font-size:14px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <a class="brand" href="#">
+      <img src="static/1.png" alt="Monastery360 logo">
+      <strong>Monastery360</strong>
+    </a>
+  </div>
+  <div class="header-right">
+    <nav class="header-nav">
+      <a href="#language" title="Language"></a>
+      <a href="#account" title="Account"></a>
+    </nav>
+    <button class="toggle-btn" id="darkToggle" aria-label="Toggle dark mode">🌙</button>
+  </div>
+</header>
+
+<main id="home">
+  <!-- HERO BACKGROUND -->
+  <section class="hero">
+    <div class="carousel-track" id="carouselTrack">
+      <div class="slide"><img src="static/b1.png" alt="Monastery 1"></div>
+      <div class="slide"><img src="static/b2.png" alt="Monastery 2"></div>
+      <div class="slide"><img src="static/b3.png" alt="Monastery 3"></div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="prevBtn">⟨</button>
+      <button class="btn" id="nextBtn">⟩</button>
+    </div>
+    <div class="indicators" id="indicators">
+      <div class="dot active" data-index="0"></div>
+      <div class="dot" data-index="1"></div>
+      <div class="dot" data-index="2"></div>
+    </div>
+  </section>
+
+  <!-- CENTRAL CONTENT -->
+  <div class="main-content">
+    <div class="content-overlay">
+      <h1>Monastery360</h1>
+      <p class="description">Digital Heritage Platform for Sikkim's Monasteries </p>
+      <input type="text" class="input-field" placeholder="Search Here...">
+    </div>
+  </div>
+
+  <!-- FEATURES SIDEBAR -->
+  <aside class="sidebar">
+    <section id="features" class="features">
+      <a href="virtual.html" class="feature">
+        <img src="static/vt.png" alt="Virtual Tours">
+        <div class="feature-content">
+          <h3>Virtual Tours</h3>
+          <p>Explore monasteries with immersive 360° virtual tours.</p>
+        </div>
+      </a>
+
+      <a href="maps.html" class="feature">
+        <img src="static/mt.png" alt="Monasteries Map">
+        <div class="feature-content">
+          <h3>Monasteries Map</h3>
+          <p>Find and navigate monasteries easily with an interactive map.</p>
+        </div>
+      </a>
+
+      <a href="calendar.html" class="feature">
+        <img src="static/cc.png" alt="Cultural Calendar">
+        <div class="feature-content">
+          <h3>Cultural Calendar</h3>
+          <p>Stay updated with monastery festivals and cultural events.</p>
+        </div>
+      </a>
+
+      <a href="da.html" class="feature">
+        <img src="static/da.png" alt="Digital Archives">
+        <div class="feature-content">
+          <h3>Digital Archives</h3>
+          <p>Access a curated archive of monastery heritage materials.</p>
+        </div>
+      </a>
+    </section>
+  </aside>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <p>© 2025 Monastery360 | Preserving Heritage with Technology</p>
+</footer>
+
+<script>
+  // Carousel
+  const track = document.getElementById("carouselTrack");
+  const slides = document.querySelectorAll(".slide");
+  const dots = document.querySelectorAll(".dot");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+
+  let index = 0;
+  function updateCarousel(){
+    track.style.transform = `translateX(-${index * 100}%)`;
+    dots.forEach(dot => dot.classList.remove("active"));
+    dots[index].classList.add("active");
+  }
+  nextBtn.addEventListener("click", ()=>{
+    index = (index + 1) % slides.length;
+    updateCarousel();
+  });
+  prevBtn.addEventListener("click", ()=>{
+    index = (index - 1 + slides.length) % slides.length;
+    updateCarousel();
+  });
+  dots.forEach(dot=>{
+    dot.addEventListener("click",()=>{
+      index = parseInt(dot.dataset.index);
+      updateCarousel();
+    });
+  });
+  setInterval(()=>{index=(index+1)%slides.length;updateCarousel()},5000);
+
+  // Dark mode toggle
+  const toggleBtn = document.getElementById("darkToggle");
+  function setDarkMode(enabled){
+    if(enabled){
+      document.body.classList.add("dark");
+      toggleBtn.textContent="☀️";
+      localStorage.setItem("darkMode","true");
+    }else{
+      document.body.classList.remove("dark");
+      toggleBtn.textContent="🌙";
+      localStorage.setItem("darkMode","false");
+    }
+  }
+  // Load preference
+  if(localStorage.getItem("darkMode")==="true"){setDarkMode(true);}
+  toggleBtn.addEventListener("click",()=>{
+    setDarkMode(!document.body.classList.contains("dark"));
+  });
+</script>
+</script>
+
+<!-- AI Chat Widget -->
+<style>
+  .ai-chat-button{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;border:none;background:#b42b2b;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.2);cursor:pointer;z-index:1200;display:flex;align-items:center;justify-content:center}
+  .ai-chat-button img{width:28px;height:28px}
+  .ai-chat-panel{position:fixed;right:20px;bottom:90px;width:340px;max-height:65vh;background:#ffffff;border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,0.25);display:none;flex-direction:column;overflow:hidden;z-index:1200}
+  body.dark .ai-chat-panel{background:#1e1e1e}
+  .ai-chat-header{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#b42b2b;color:#fff}
+  .ai-chat-header .title{font-weight:700;font-size:0.95rem}
+  .ai-chat-close{margin-left:auto;background:transparent;border:0;color:#fff;font-size:18px;cursor:pointer}
+  .ai-chat-messages{padding:12px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+  .ai-msg{padding:10px 12px;border-radius:12px;font-size:0.9rem;line-height:1.35;max-width:90%}
+  .ai-msg.bot{background:#f4f0ea;color:#2c2c2c}
+  .ai-msg.user{background:#e8f0ff;color:#1b1b1b;margin-left:auto}
+  body.dark .ai-msg.bot{background:#2a2a2a;color:#f0f0f0}
+  body.dark .ai-msg.user{background:#24324a;color:#e6eefc}
+  .ai-chat-suggestions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .ai-chip{border:1px solid #d8cbc0;color:#6b5a47;background:#fff;border-radius:20px;padding:6px 10px;font-size:0.8rem;cursor:pointer}
+  body.dark .ai-chip{background:#1e1e1e;border-color:#3a3a3a;color:#ddd}
+  .ai-input-bar{display:flex;gap:8px;padding:10px;border-top:1px solid #eee}
+  body.dark .ai-input-bar{border-color:#333}
+  .ai-input{flex:1;border:1px solid #ddd;border-radius:10px;padding:10px;font-size:0.9rem;background:#fff;color:#2c2c2c}
+  body.dark .ai-input{background:#121212;border-color:#333;color:#f0f0f0}
+  .ai-send{background:#b42b2b;border:none;color:#fff;border-radius:10px;padding:10px 12px;cursor:pointer}
+  .ai-footer-tools{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid #eee;font-size:0.8rem;color:#7d6f58}
+  body.dark .ai-footer-tools{border-color:#333;color:#bbb}
+  .ai-link{color:#b42b2b;cursor:pointer;text-decoration:underline}
+  .ai-chat-label{position:fixed;right:84px;bottom:32px;background:#ffffff;color:#6b5a47;border:1px solid #d8cbc0;border-radius:999px;padding:6px 10px;font-size:0.8rem;box-shadow:0 8px 20px rgba(0,0,0,0.15);z-index:1200}
+  body.dark .ai-chat-label{background:#1e1e1e;color:#ddd;border-color:#3a3a3a}
+</style>
+
+<button class="ai-chat-button" id="aiChatBtn" aria-label="Open travel assistant">
+  <img src="static/m-vector.png" alt="Assistant">
+</button>
+<div class="ai-chat-label" id="aiChatLabel">AI Assistant</div>
+<div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-modal="true" aria-labelledby="aiChatTitle">
+  <div class="ai-chat-header">
+    <span class="title" id="aiChatTitle">Travel Assistant</span>
+    <button class="ai-chat-close" id="aiChatClose" aria-label="Close">×</button>
+  </div>
+  <div class="ai-chat-messages" id="aiChatMessages"></div>
+  <div class="ai-footer-tools">
+    <span class="ai-link" id="aiHuman">Connect to a human agent</span>
+    <span class="ai-link" id="aiFeedback">Was this helpful?</span>
+  </div>
+  <div class="ai-input-bar">
+    <input class="ai-input" id="aiInput" type="text" placeholder="Type your question..." />
+    <button class="ai-send" id="aiSend">Send</button>
+  </div>
+</div>
+
+<script>
+  // AI Chat Widget Logic
+  (function(){
+    const btn = document.getElementById('aiChatBtn');
+    const panel = document.getElementById('aiChatPanel');
+    const closeBtn = document.getElementById('aiChatClose');
+    const messages = document.getElementById('aiChatMessages');
+    const input = document.getElementById('aiInput');
+    const send = document.getElementById('aiSend');
+    const human = document.getElementById('aiHuman');
+    const feedback = document.getElementById('aiFeedback');
+
+    // Simulated user context: replace with real auth data if available
+    const storedUserName = localStorage.getItem('username') || 'Traveler';
+    const lastTopicKey = 'ai_last_topic';
+
+    function togglePanel(show){
+      panel.style.display = show ? 'flex' : 'none';
+      if(show){
+        panel.setAttribute('aria-hidden','false');
+        if(messages.childElementCount === 0){
+          greet();
+        }
+        input.focus();
+      } else {
+        panel.setAttribute('aria-hidden','true');
+      }
+    }
+
+    function addMessage(text, role){
+      const bubble = document.createElement('div');
+      bubble.className = 'ai-msg ' + (role === 'user' ? 'user' : 'bot');
+      bubble.textContent = text;
+      messages.appendChild(bubble);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function addSuggestions(){
+      const wrap = document.createElement('div');
+      wrap.className = 'ai-chat-suggestions';
+      const options = [
+        'Build a 3-Day Itinerary',
+        'Things to do today',
+        'Need Visa/Entry Requirements',
+        'Best hiking trails',
+        'Monastery festivals this month',
+        'Closest monasteries to my hotel'
+      ];
+      options.forEach(label => {
+        const chip = document.createElement('button');
+        chip.className = 'ai-chip';
+        chip.type = 'button';
+        chip.textContent = label;
+        chip.addEventListener('click', ()=>{
+          handleUserInput(label);
+        });
+        wrap.appendChild(chip);
+      });
+      messages.appendChild(wrap);
+      const followup1 = document.createElement('div');
+      followup1.className = 'ai-msg bot';
+      followup1.textContent = 'Or, just type your question below!';
+      messages.appendChild(followup1);
+      const followup2 = document.createElement('div');
+      followup2.className = 'ai-msg bot';
+      followup2.textContent = 'Feel free to ask me anything else!';
+      messages.appendChild(followup2);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function greet(){
+      const lastTopic = localStorage.getItem(lastTopicKey);
+      if(lastTopic){
+        addMessage(`Welcome back! Are you still interested in ${lastTopic}?`, 'bot');
+      } else {
+        addMessage(`Hi ${storedUserName}! Ready to plan your perfect trip? I can help with itineraries, hotel suggestions, and finding the best local spots. What's on your mind?`, 'bot');
+      }
+      addSuggestions();
+    }
+
+    function mockAiReply(prompt){
+      // Simple keyword-based demo logic
+      const text = prompt.toLowerCase();
+      let reply = "I can help with that!";
+      if(text.includes('itinerary') || text.includes('3-day')){
+        reply = 'Great! I can build a 3-day itinerary around Gangtok, Rumtek, and Pemayangtse, including festival visits and local cuisine stops. Would you like cultural focus or trekking focus?';
+        localStorage.setItem(lastTopicKey,'a 3-day itinerary');
+      } else if(text.includes('visa') || text.includes('entry')){
+        reply = 'For most travelers, Sikkim requires a Protected Area Permit (PAP). Requirements vary by nationality. Do you want the latest links and steps?';
+        localStorage.setItem(lastTopicKey,'visa and entry requirements');
+      } else if(text.includes('hiking') || text.includes('trails')){
+        reply = 'Top hikes near monasteries include Maenam Wildlife Sanctuary trails and Tendong Hill. What difficulty are you looking for?';
+        localStorage.setItem(lastTopicKey,'best hiking trails');
+      } else if(text.includes('festival')){
+        reply = 'Upcoming monastery festivals include masked dance rituals and music events. I can cross-check dates in the Cultural Calendar.';
+        localStorage.setItem(lastTopicKey,'monastery festivals');
+      } else if(text.includes('map') || text.includes('closest')){
+        reply = 'You can use the Monasteries Map to find places near you. Want me to open the map page?';
+        localStorage.setItem(lastTopicKey,'nearby monasteries');
+      } else {
+        reply = "Got it. I'll do my best to help. If you need a human at any point, click 'Connect to a human agent' below.";
+        localStorage.setItem(lastTopicKey,'your recent question');
+      }
+      return reply;
+    }
+
+    function handleUserInput(text){
+      if(!text) return;
+      addMessage(text, 'user');
+      const reply = mockAiReply(text);
+      setTimeout(()=> addMessage(reply, 'bot'), 400);
+    }
+
+    btn.addEventListener('click', ()=> togglePanel(true));
+    closeBtn.addEventListener('click', ()=> togglePanel(false));
+    send.addEventListener('click', ()=> {
+      const text = input.value.trim();
+      input.value = '';
+      handleUserInput(text);
+      input.focus();
+    });
+    input.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        send.click();
+      }
+    });
+    human.addEventListener('click', ()=>{
+      addMessage('Okay, I will connect you to a human agent. Please leave your message and contact details.', 'bot');
+      // In real app: open contact form or trigger support workflow
+    });
+    feedback.addEventListener('click', ()=>{
+      const node = document.createElement('div');
+      node.className = 'ai-chat-suggestions';
+      const yes = document.createElement('button'); yes.className='ai-chip'; yes.textContent='Yes';
+      const no = document.createElement('button'); no.className='ai-chip'; no.textContent='No';
+      yes.addEventListener('click', ()=>{ addMessage('Thanks for the feedback!','bot'); localStorage.setItem('ai_feedback','yes'); });
+      no.addEventListener('click', ()=>{ addMessage('Thanks! We\'ll keep improving.','bot'); localStorage.setItem('ai_feedback','no'); });
+      node.appendChild(yes); node.appendChild(no);
+      messages.appendChild(node);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    // Optional: open with keyboard shortcut
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === '/' && (e.ctrlKey || e.metaKey)){
+        e.preventDefault();
+        togglePanel(panel.style.display !== 'flex');
+      }
+    });
+  })();
+</script>
+</body>
+</html>

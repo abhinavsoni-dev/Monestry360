@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monastery Travel Reservation</title>
+  <style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Background image with overlay */
+  background: linear-gradient(
+              rgba(177, 177, 177, 0.2), 
+              rgba(243, 245, 249, 0.2)), 
+            url('static/form-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+
+    .form-container {
+      max-width: 850px;
+      width: 95%;
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(15px) saturate(150%);
+      -webkit-backdrop-filter: blur(15px) saturate(150%);
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 60px;
+      font-weight: 700;
+      background:#333;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 100px;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .full-width {
+      grid-column: span 2;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.75);
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 80%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.35);
+      font-size: 14px;
+      outline: none;
+      color: #333;
+      transition: all 0.3s ease-in-out;
+      box-shadow: inset 2px 2px 6px rgba(255, 255, 255, 0.5),
+                  inset -2px -2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #ff758c;
+      box-shadow: 0 0 10px rgba(255, 117, 140, 0.4);
+    }
+
+    textarea {
+      resize: none;
+    }
+
+    button {
+      grid-column: span 2;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #ffb744;
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 117, 140, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 117, 140, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Monastery Travel Reservation</h2>
+    <form>
+      <div>
+        <label>First Name*</label>
+        <input type="text" placeholder="Enter your first name">
+      </div>
+      <div>
+        <label>Last Name*</label>
+        <input type="text" placeholder="Enter your last name">
+      </div>
+
+      <div>
+        <label>Email*</label>
+        <input type="email" placeholder="example@email.com">
+      </div>
+      <div>
+        <label>Phone*</label>
+        <input type="tel" placeholder="+91 9876543210">
+      </div>
+
+      <div>
+        <label>Departure Date*</label>
+        <input type="date">
+      </div>
+      <div>
+        <label>Departure Time*</label>
+        <input type="time">
+      </div>
+
+      <div>
+        <label>Return Date*</label>
+        <input type="date">
+      </div>
+      <div>
+        <label>Return Time*</label>
+        <input type="time">
+      </div>
+
+      <div class="full-width">
+        <label>Number of Passengers*</label>
+        <select>
+          <option>Select</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3+</option>
+        </select>
+      </div>
+
+      <div class="full-width">
+        <label>Address</label>
+        <textarea rows="2" placeholder="Enter your address"></textarea>
+      </div>
+
+      <button type="submit">✨ Book Now ✨</button>
+    </form>
+  </div>
+</body>
+</html>

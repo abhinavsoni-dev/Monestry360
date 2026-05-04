@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Monasteries Map — Interactive</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f9f5ef;
+    --text:#2c2c2c;
+    --muted:#7d6f58;
+    --accent:#b42b2b;
+    --card-bg:#fff8f0;
+    --card-shadow:0 6px 18px rgba(0,0,0,0.1);
+  }
+  html,body{
+    height:100%;margin:0;background:var(--bg);
+    font-family:'Poppins',system-ui,-apple-system,sans-serif;color:var(--text);
+  }
+  .wrap{max-width:1200px;margin:28px auto;padding:18px;box-sizing:border-box}
+
+  .topbar{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{height:48px;width:48px;border-radius:10px;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px}
+  .title{font-weight:600;font-size:18px}
+  .subtitle{font-size:13px;color:var(--muted)}
+  .controls{display:flex;gap:8px;align-items:center}
+  .control,.chip{background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.05);
+    padding:8px 12px;border-radius:10px;color:var(--text);font-size:14px;backdrop-filter:blur(6px);cursor:pointer;transition:all .25s}
+  .chip.active{background:var(--accent);color:#fff;font-weight:600}
+  .search{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:#fff8f0;border:1px solid rgba(0,0,0,0.05)}
+  .search input{background:transparent;border:0;color:var(--text);outline:none;width:180px;font-size:14px}
+
+  .map-frame{margin-top:16px;background:#fff8f0;border-radius:14px;padding:14px;border:1px solid rgba(0,0,0,0.05);box-shadow:var(--card-shadow)}
+  .map-viewport{position:relative;overflow:hidden;border-radius:12px;height:66vh;min-height:420px;display:flex;touch-action:pan-x pan-y}
+  .map-inner{position:absolute;inset:0;transform-origin:center center;transition:transform .32s cubic-bezier(.2,.9,.3,1);cursor:grab}
+  .map-inner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1) saturate(1)}
+  .markers-layer{position:absolute;inset:0;pointer-events:none}
+
+  .marker{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;transition:transform .22s ease,opacity .3s}
+  .pin{width:44px;height:44px;border-radius:22px;background:var(--accent);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;box-shadow:0 6px 18px rgba(180,43,43,0.2);transition:transform .2s}
+  .marker:hover .pin{transform:translateY(-6px) scale(1.05);animation:bounce 0.4s ease}
+  .pulse{position:absolute;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(180,43,43,0.15),transparent 40%);z-index:-1;filter:blur(6px);opacity:0;transition:opacity .28s}
+  .marker:hover .pulse{opacity:1}
+
+  @keyframes bounce {0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+  /* Animated Monastery Cards Layer */
+  .monastery-cards-layer {
+    position: fixed;
+    top: 60px;
+    right: 36px;
+    width: 330px;
+    z-index: 60;
+    max-width:90vw;
+  }
+.monastery-card {
+    background: var(--card-bg);
+    border-radius: 20px;            /* smoother corners */
+    box-shadow: var(--card-shadow), 0 2px 12px rgba(0,0,0,0.08);
+    padding: 28px 24px 24px 24px;   /* more spacious padding */
+    margin-bottom: 16px;            /* more gap below card */
+    transition: 
+    transform 0.5s cubic-bezier(.4,.6,.5,1), 
+    opacity 0.38s;              /* softer animation feel */
+    transform: translateY(0);       /* cards animate vertically */
+    opacity: 1;
+    position: absolute;             /* enables center positioning */
+    left: 50%;                      /* center horizontally */
+    top: 50px;                      /* some space below top bar */
+    transform: translate(-50%, 0);  /* truly centered card */
+    min-width: 300px;               /* bigger minimum for card */
+    max-width: 95vw;                /* responsive for desktop/mobile */
+    z-index: 1050;                  /* ensure it sits above content */
+}
+
+  .monastery-card.slideout {
+    transform: translateX(480px);
+    opacity: 0;
+  }
+  .monastery-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+  .monastery-card p {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  .monastery-card .close-btn {
+    position: absolute;
+    top:10px; right:14px;
+    background:var(--accent); color:#fff; border:none; border-radius:6px;
+    padding:6px 12px; font-weight:600; cursor:pointer; font-size:12px;
+  }
+
+  /* ORIGINAL FLOATING POPUP (now hidden) */
+  #floatingPopup{
+    display:none;
+  }
+
+  .zoom-controls{position:absolute;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:50}
+  .zoom-controls button{background:#fff8f0;border:1px solid rgba(0,0,0,0.05);color:var(--text);padding:10px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px}
+
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .legend .item{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+  .legend .sw{width:14px;height:14px;border-radius:3px;background:var(--accent);box-shadow:0 6px 14px rgba(180,43,43,0.08)}
+
+  @media (max-width:880px){.map-viewport{height:62vh;min-height:360px}.search input{width:120px}}
+  @media (max-width:520px){.topbar{flex-direction:column;align-items:flex-start;gap:12px}.map-viewport{height:56vh;min-height:320px}
+    .monastery-cards-layer{top:56px;right:10px;width:95vw;}
+    .monastery-card{min-width:180px;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">📌</div>
+        <div>
+          <div class="title">Monasteries Map</div>
+          <div class="subtitle">Find & navigate monastery locations — interactive map</div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.9">
+          <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+          <input id="search" placeholder="Search monastery..." aria-label="search monastery">
+        </div>
+        <div class="chip control active" data-filter="all">All</div>
+        <div class="chip control" data-filter="fest">Festivals</div>
+        <div class="chip control" data-filter="art">Art & Rituals</div>
+      </div>
+    </div>
+
+    <div class="map-frame">
+      <div class="map-viewport" id="viewport">
+        <div class="map-inner" id="mapinner">
+          <img id="mapImg" src="static/map.jpg" alt="Sikkim map">
+          <div class="markers-layer">
+            <div class="marker" data-id="m1" data-type="fest" style="left:22%; top:70%;">
+              <div class="pulse"></div><div class="pin">1</div>
+            </div>
+            <div class="marker" data-id="m2" data-type="art" style="left:45%; top:50%;">
+              <div class="pulse"></div><div class="pin">2</div>
+            </div>
+            <div class="marker" data-id="m3" data-type="fest" style="left:64%; top:34%;">
+              <div class="pulse"></div><div class="pin">3</div>
+            </div>
+            <div class="marker" data-id="m4" data-type="art" style="left:55%; top:70%;">
+              <div class="pulse"></div><div class="pin">4</div>
+            </div>
+            <div class="marker" data-id="m5" data-type="fest" style="left:78%; top:18%;">
+              <div class="pulse"></div><div class="pin">5</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Animated Card Layer, cards appear here -->
+        <div class="monastery-cards-layer" id="monasteryCards"></div>
+ 
+        <!-- Old floating popup, left hidden for reference -->
+        <div id="floatingPopup">
+          <img class="thumb" src="static/mn.png" alt="" style="display:none">
+          <h4></h4><p></p>
+          <div class="meta">
+            <small></small>
+            <button class="btn-small">Explore</button>
+          </div>
+        </div>
+        <div class="zoom-controls">
+          <button id="zoomIn">+</button>
+          <button id="zoomOut">−</button>
+          <button id="resetZoom">⤾</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <div class="legend">
+          <div class="item"><div class="sw"></div> Monastery Marker</div>
+          <div class="item" style="opacity:.85">Tap / hover a pin to view details</div>
+        </div>
+        <div style="font-size:13px;opacity:.8">Interactive map • Mobile-friendly</div>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+const MARKER_DATA = {
+  m1:{title:'Rumtek Monastery',text:'Largest Karma Kagyu monastery — rich art & festivals.',loc:'Ladakh',img:'static/mn.png'},
+  m2:{title:'Pemayangtse Monastery',text:'Ancient monastery known for exquisite sculptures.',loc:'West Sikkim',img:'static/mn.png'},
+  m3:{title:'Tsukla Khang',text:'Royal monastery complex with strong ritual traditions.',loc:'North Sikkim',img:'static/mn.png'},
+  m4:{title:'Enchey Monastery',text:'Famous for masked Cham dance rituals and festivals.',loc:'Gangtok',img:'static/mn.png'},
+  m5:{title:'Tsechey Monastery',text:'Known for bright festivals and spiritual teachings.',loc:'Upper Sikkim',img:'static/mn.png'},
+};
+
+const mapInner=document.getElementById('mapinner');
+const markers=[...document.querySelectorAll('.marker')];
+const monasteryCards=document.getElementById('monasteryCards');
+
+let scale=1,MIN=0.9,MAX=2.2,isDrag=false,sx=0,sy=0,tx=0,ty=0;
+
+// Map zoom and pan
+function applyTransform(){mapInner.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;}
+function setScale(s){scale=Math.max(MIN,Math.min(MAX,+s.toFixed(2)));applyTransform();}
+document.getElementById('zoomIn').onclick=()=>setScale(scale+0.2);
+document.getElementById('zoomOut').onclick=()=>setScale(scale-0.2);
+document.getElementById('resetZoom').onclick=()=>{scale=1;tx=ty=0;applyTransform();};
+
+mapInner.onmousedown=e=>{isDrag=true;sx=e.clientX-tx;sy=e.clientY-ty;mapInner.style.cursor='grabbing'};
+window.onmouseup=()=>{isDrag=false;mapInner.style.cursor='grab'};
+window.onmousemove=e=>{if(!isDrag)return;tx=e.clientX-sx;ty=e.clientY-sy;applyTransform();};
+
+mapInner.addEventListener('touchstart',e=>{if(e.touches.length===1){isDrag=true;sx=e.touches[0].clientX-tx;sy=e.touches[0].clientY-ty;}},{passive:true});
+window.addEventListener('touchend',()=>isDrag=false);
+window.addEventListener('touchmove',e=>{if(!isDrag||e.touches.length!==1)return;tx=e.touches[0].clientX-sx;ty=e.touches[0].clientY-sy;applyTransform();},{passive:true});
+
+// Smooth zoom with wheel
+mapInner.addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 0.1 : -0.1;
+  const newScale = Math.min(MAX, Math.max(MIN, scale + delta));
+  const rect = mapInner.getBoundingClientRect();
+  const offsetX = (e.clientX - rect.left) / scale;
+  const offsetY = (e.clientY - rect.top) / scale;
+  tx -= offsetX * (newScale - scale);
+  ty -= offsetY * (newScale - scale);
+  scale = newScale;
+  applyTransform();
+},{passive:false});
+
+// Monastery animated card logic
+function showMonasteryCard(id) {
+  const d = MARKER_DATA[id];
+  if (!d) return;
+  // Slide out and remove current cards
+  [...monasteryCards.children].forEach(card => {
+    card.classList.add('slideout');
+    setTimeout(() => card.remove(), 480);
+  });
+  // Create and show a new card
+  const card = document.createElement('div');
+  card.className = 'monastery-card';
+  card.innerHTML = `
+    <button class="close-btn">&times;</button>
+    <h3>${d.title}</h3>
+    <p>${d.text}</p>
+    <div style="color:var(--muted);font-size:13px;">${d.loc}</div>
+    <img src="${d.static}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-top:12px;">
+  `;
+  monasteryCards.appendChild(card);
+  card.querySelector('.close-btn').onclick = () => {
+    card.classList.add('slideout');
+    setTimeout(() => card.remove(), 480);
+  };
+}
+
+// When marker clicked, show animated card (replaces popup)
+markers.forEach(m => m.addEventListener('click', () => showMonasteryCard(m.dataset.id)));
+
+// Filtering markers/cards
+function updateMarkers(filter){
+  markers.forEach(m => {
+    const show = filter==='all' || m.dataset.type===filter;
+    m.style.transition = 'opacity 0.3s ease';
+    m.style.opacity = show ? 1 : 0;
+    setTimeout(() => { m.style.display = show ? 'flex' : 'none'; }, 300);
+  });
+  // Dismiss any open cards
+  [...monasteryCards.children].forEach(card => {
+    card.classList.add('slideout');
+    setTimeout(()=>card.remove(),480);
+  });
+}
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');
+  updateMarkers(c.dataset.filter);
+});
+
+// Search function (also hides cards if no result)
+document.getElementById('search').oninput=e=>{
+  const q=e.target.value.toLowerCase();
+  markers.forEach(m=>{
+    const d=MARKER_DATA[m.dataset.id];if(!d)return;
+    const show = d.title.toLowerCase().includes(q);
+    m.style.transition='opacity 0.3s ease';
+    m.style.opacity=show?1:0;
+    setTimeout(()=>{ m.style.display=show?'flex':'none'; },300);
+  });
+  // Remove previous cards
+  [...monasteryCards.children].forEach(card => {
+    card.classList.add('slideout');
+    setTimeout(()=>card.remove(),480);
+  });
+};
+</script>
+</body>
+</html>

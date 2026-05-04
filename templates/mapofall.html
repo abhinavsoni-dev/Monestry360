@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Monasteries Map — Interactive</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1720;
+    --muted:#9aa4b2;
+    --accent1:#36D1DC;
+    --accent2:#5B86E5;
+    --gold1:#FFB75E;
+    --gold2:#ED8F03;
+  }
+  html,body{
+    height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#0b0f14);
+    font-family:'Poppins',system-ui,-apple-system,sans-serif;color:#e6eef6}
+    
+  .wrap{max-width:1200px;margin:28px auto;padding:18px;box-sizing:border-box}
+
+  .topbar{display:flex;gap:16px;align-items:center;
+    justify-content:space-between;margin-bottom:14px}
+  .brand{display:flex;gap:12px;align-items:center}
+  
+  .logo{height:48px;width:48px;border-radius:10px;
+  background:linear-gradient(140deg,#001,#9aa4b2);display:
+  flex;align-items:center;justify-content:center;color:#001;font-weight:700;font-size:18px}
+  
+  .title{font-weight:600;font-size:18px}
+  .subtitle{font-size:13px;color:var(--muted)}
+
+  .controls{display:flex;gap:8px;align-items:center}
+  .control,.chip{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;color:#e6eef6;font-size:14px;backdrop-filter:blur(6px);cursor:pointer}
+  .chip.active{background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#001;font-weight:600}
+  .search{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:#061018;border:1px solid rgba(255,255,255,0.03)}
+  .search input{background:transparent;border:0;color:#e6eef6;outline:none;width:180px;font-size:14px}
+
+  .map-frame{margin-top:16px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+  .map-viewport{position:relative;overflow:hidden;border-radius:12px;height:66vh;min-height:420px;display:flex;touch-action:pan-x pan-y}
+
+  .map-inner{position:absolute;inset:0;transform-origin:center center;transition:transform .32s cubic-bezier(.2,.9,.3,1);cursor:grab}
+  .map-inner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;filter:contrast(.95) saturate(.95)}
+  .markers-layer{position:absolute;inset:0;pointer-events:none}
+
+  .marker{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;transition:transform .22s ease}
+  .pin{width:44px;height:44px;border-radius:22px;background:linear-gradient(135deg,var(--gold1),var(--gold2));display:flex;align-items:center;justify-content:center;color:#111;font-weight:700;box-shadow:0 6px 18px rgba(237,143,3,0.18),inset 0 -6px 12px rgba(0,0,0,0.12);transition:transform .2s}
+  .marker:hover .pin{transform:translateY(-6px) scale(1.05)}
+  .pulse{position:absolute;width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,rgba(255,183,94,0.15),transparent 40%);z-index:-1;filter:blur(6px);opacity:0;transition:opacity .28s}
+  .marker:hover .pulse{opacity:1}
+
+  #floatingPopup{
+    position:absolute;left:0;top:0;transform:translate(-50%,-120%) scale(.98);min-width:220px;max-width:340px;background:linear-gradient(180deg,rgba(8,12,20,0.95),rgba(10,14,22,0.98));border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 12px 30px rgba(2,6,23,0.6);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s
+  }
+  #floatingPopup.visible{opacity:1;pointer-events:auto;transform:translate(-50%,-120%) scale(1)}
+  #floatingPopup .thumb{width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px}
+  #floatingPopup h4{margin:6px 0 4px 0;font-size:16px;color:#fff}
+  #floatingPopup p{margin:0;color:var(--muted);font-size:13px}
+  #floatingPopup .meta{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+  .btn-small{padding:6px 8px;border-radius:8px;background:linear-gradient(135deg,var(--accent1),var(--accent2));border:0;color:#001;font-weight:600;font-size:13px;cursor:pointer}
+
+  .zoom-controls{position:absolute;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:50}
+  .zoom-controls button{background:rgba(6,10,15,0.8);border:1px solid rgba(255,255,255,0.04);color:#eaf2ff;padding:10px;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px}
+
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  .legend .item{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+  .legend .sw{width:14px;height:14px;border-radius:3px;background:linear-gradient(135deg,var(--accent1),var(--accent2));box-shadow:0 6px 14px rgba(59,130,246,0.08)}
+
+  @media (max-width:880px){.map-viewport{height:62vh;min-height:360px}.search input{width:120px}}
+  @media (max-width:520px){.topbar{flex-direction:column;align-items:flex-start;gap:12px}.map-viewport{height:56vh;min-height:320px}#floatingPopup{min-width:200px;max-width:260px;}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">📌</div>
+        <div>
+          <div class="title">Monasteries Map</div>
+          <div class="subtitle">Find & navigate monastery locations — interactive map</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.9">
+          <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          </path><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+          <input id="search" placeholder="Search monastery..." aria-label="search monastery">
+        </div>
+        <div class="chip control active" data-filter="all">All</div>
+        <div class="chip control" data-filter="fest">Festivals</div>
+        <div class="chip control" data-filter="art">Art & Rituals</div>
+      </div>
+    </div>
+
+    <div class="map-frame">
+      <div class="map-viewport" id="viewport">
+        <div class="map-inner" id="mapinner">
+          <img id="mapImg" src="static/map.jpg" alt="Sikkim map">
+          <div class="markers-layer">
+            <div class="marker" data-id="m1" data-type="fest" style="left:22%; top:70%;">
+              <div class="pulse"></div><div class="pin">1</div>
+            </div>
+            <div class="marker" data-id="m2" data-type="art" style="left:45%; top:50%;">
+              <div class="pulse"></div><div class="pin">2</div>
+            </div>
+            <div class="marker" data-id="m3" data-type="fest" style="left:64%; top:34%;">
+              <div class="pulse"></div><div class="pin">3</div>
+            </div>
+            <div class="marker" data-id="m4" data-type="art" style="left:55%; top:70%;">
+              <div class="pulse"></div><div class="pin">4</div>
+            </div>
+            <div class="marker" data-id="m5" data-type="fest" style="left:78%; top:18%;">
+              <div class="pulse"></div><div class="pin">5</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="floatingPopup">
+          <img class="thumb" src="static/mn.png" alt="" style="display:none">
+          <h4></h4><p></p>
+          <div class="meta">
+            <small></small>
+            <button class="btn-small">Explore</button>
+          </div>
+        </div>
+
+        <div class="zoom-controls">
+          <button id="zoomIn">+</button>
+          <button id="zoomOut">−</button>
+          <button id="resetZoom">⤾</button>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+        <div class="legend">
+          <div class="item"><div class="sw"></div> Monastery Marker</div>
+          <div class="item" style="opacity:.85">Tap / hover a pin to view details</div>
+        </div>
+        <div style="font-size:13px;opacity:.8">Interactive map • Mobile-friendly</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const MARKER_DATA = {
+  m1:{title:'Rumtek Monastery',text:'Largest Karma Kagyu monastery — rich art & festivals.',loc:'Ladakh',img:'static/rumtek.jpg'},
+  m2:{title:'Pemayangtse Monastery',text:'Ancient monastery known for exquisite sculptures.',loc:'West Sikkim',img:'static/pemayangtse.jpg'},
+  m3:{title:'Tsukla Khang',text:'Royal monastery complex with strong ritual traditions.',loc:'North Sikkim',img:'static/tsukla.jpg'},
+  m4:{title:'Enchey Monastery',text:'Famous for masked Cham dance rituals and festivals.',loc:'Gangtok',img:'static/enchey.jpg'},
+  m5:{title:'Tsechey Monastery',text:'Known for bright festivals and spiritual teachings.',loc:'Upper Sikkim',img:'static/tsichey.jpg'},
+};
+
+const mapInner=document.getElementById('mapinner');
+const markers=[...document.querySelectorAll('.marker')];
+const popup=document.getElementById('floatingPopup');
+const popupThumb=popup.querySelector('.thumb'),popupTitle=popup.querySelector('h4'),popupText=popup.querySelector('p'),popupMeta=popup.querySelector('.meta small');
+let currentId=null;
+
+let scale=1,MIN=0.9,MAX=2.2,isDrag=false,sx=0,sy=0,tx=0,ty=0;
+function applyTransform(){mapInner.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;repositionPopup();}
+function setScale(s){scale=Math.max(MIN,Math.min(MAX,+s.toFixed(2)));applyTransform();}
+document.getElementById('zoomIn').onclick=()=>setScale(scale+0.2);
+document.getElementById('zoomOut').onclick=()=>setScale(scale-0.2);
+document.getElementById('resetZoom').onclick=()=>{scale=1;tx=ty=0;applyTransform();};
+
+mapInner.onmousedown=e=>{isDrag=true;sx=e.clientX-tx;sy=e.clientY-ty;mapInner.style.cursor='grabbing'};
+window.onmouseup=()=>{isDrag=false;mapInner.style.cursor='grab'};
+window.onmousemove=e=>{if(!isDrag)return;tx=e.clientX-sx;ty=e.clientY-sy;applyTransform();};
+
+mapInner.addEventListener('touchstart',e=>{if(e.touches.length===1){isDrag=true;sx=e.touches[0].clientX-tx;sy=e.touches[0].clientY-ty;}},{passive:true});
+window.addEventListener('touchend',()=>isDrag=false);
+window.addEventListener('touchmove',e=>{if(!isDrag||e.touches.length!==1)return;tx=e.touches[0].clientX-sx;ty=e.touches[0].clientY-sy;applyTransform();},{passive:true});
+
+markers.forEach(m=>m.addEventListener('click',()=>showPopup(m)));
+
+function showPopup(m){
+  const d=MARKER_DATA[m.dataset.id];if(!d)return;
+  popupThumb.src=d.img;popupThumb.style.display=d.img?'block':'none';
+  popupTitle.textContent=d.title;popupText.textContent=d.text;popupMeta.textContent=d.loc;
+  currentId=m.dataset.id;popup.classList.add('visible');
+  const r=m.getBoundingClientRect(),vp=document.getElementById('viewport').getBoundingClientRect();
+  popup.style.left=(r.left+ r.width/2 - vp.left)+'px';
+  popup.style.top=(r.top-10-vp.top)+'px';
+}
+function repositionPopup(){
+  if(!currentId)return;
+  const m=document.querySelector(`.marker[data-id="${currentId}"]`);
+  if(!m)return;
+  const r=m.getBoundingClientRect(),vp=document.getElementById('viewport').getBoundingClientRect();
+  popup.style.left=(r.left+ r.width/2 - vp.left)+'px';
+  popup.style.top=(r.top-10-vp.top)+'px';
+}
+
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+  c.classList.add('active');const f=c.dataset.filter;
+  markers.forEach(m=>{m.style.display=(f==='all'||m.dataset.type===f)?'block':'none';});
+  popup.classList.remove('visible');
+});
+
+document.getElementById('search').oninput=e=>{
+  const q=e.target.value.toLowerCase();
+  markers.forEach(m=>{
+    const d=MARKER_DATA[m.dataset.id];if(!d)return;
+    m.style.display=d.title.toLowerCase().includes(q)?'block':'none';
+  });
+  popup.classList.remove('visible');
+};
+</script>
+</body>
+</html>
